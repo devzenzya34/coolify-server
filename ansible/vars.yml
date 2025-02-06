@@ -1,0 +1,11 @@
+---
+# Coolify configuration
+coolify_version: latest
+coolify_port: 80
+coolify_bind_address: "0.0.0.0"
+
+# Firewall configuration
+firewall_enabled: true
+allowed_ports:
+  - 80
+  - 443

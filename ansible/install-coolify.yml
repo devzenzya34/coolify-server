@@ -1,0 +1,72 @@
+---
+- name: Install Coolify
+  hosts: coolify_vm
+  become: true
+  vars_files:
+    - vars.yml
+  
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - wget
+          - unzip
+          - docker.io
+        state: present
+        update_cache: yes
+      
+    - name: Add vagrant user to docker group
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+      
+    - name: Download Coolify installer
+      get_url:
+        url: https://cdn.coollabs.io/coolify/install.sh
+        dest: /tmp/coolify-install.sh
+        mode: '0755'
+      register: coolify_download
+      
+    - name: Install Coolify
+      shell: |
+        curl -fsSL https://cdn.coollabs.io/coolify/install.sh | sudo bash
+      when: coolify_download.changed
+      
+    - name: Configure firewall for HTTP
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+        state: enabled
+        
+    - name: Configure firewall for HTTPS
+      ufw:
+        rule: allow
+        port: 443
+        proto: tcp
+        state: enabled
+        
+    - name: Configure firewall for Coolify UI
+      ufw:
+        rule: allow
+        port: 8000
+        proto: tcp
+        state: enabled
+      
+    - name: Wait for Coolify to be ready
+      uri:
+        url: "http://{{ ansible_host }}:8000"
+        status_code: 200
+        timeout: 30
+      register: coolify_status
+      retries: 60
+      delay: 5
+      until: coolify_status.status == 200
+      ignore_errors: yes
+      
+    - name: Display Coolify URL
+      debug:
+        msg: "Coolify is accessible at http://{{ ansible_host }}:8000"
+      when: coolify_status is success
