@@ -1,9 +1,7 @@
 ---
 - name: Install Coolify
-  hosts: coolify_vm
+  hosts: coolify
   become: true
-  vars_files:
-    - vars.yml
   
   tasks:
     - name: Install prerequisites
@@ -47,6 +45,13 @@
         port: 443
         proto: tcp
         state: enabled
+    
+    - name: Configure firewall for SSH
+      ufw:
+        rule: allow
+        port: 22
+        proto: tcp
+        state: enabled
         
     - name: Configure firewall for Coolify UI
       ufw:
@@ -70,3 +75,16 @@
       debug:
         msg: "Coolify is accessible at http://{{ ansible_host }}:8000"
       when: coolify_status is success
+
+
+## Start coolify manually
+# docker run -d \
+#  --name coolify \
+#  -p 8000:8000 \
+#  -v /var/run/docker.sock:/var/run/docker.sock \
+#  -v coolify-db:/app/db \
+#  -v coolify-backup:/app/backup \
+# -e COOLIFY_DATABASE_URL="file:../db/prod.db" \
+#  -e NODE_ENV=production \
+#  --restart always \
+#  coollabsio/coolify:latest
