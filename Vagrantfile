@@ -16,6 +16,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "vbox" do |vbox|
     vbox.vm.hostname = "coolify-vm"
     vbox.vm.network "private_network", ip: "192.168.56.40"
+    vbox.vm.network "public_network", ip: "192.168.1.40", bridge: "enp3s0" 
     vbox.vm.provider "virtualbox" do |vb|
       vb.memory = "8192"
       vb.cpus = 4
